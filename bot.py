@@ -1,10 +1,8 @@
 
-
 """
 First, a few callback functions are defined. Then, those functions are passed to
 the Dispatcher and registered at their respective places.
 Then, the bot is started and runs until we press Ctrl-C on the command line.
-
 Usage:
 Example of a bot-user conversation using ConversationHandler.
 Send /start to initiate the conversation.
@@ -13,18 +11,20 @@ bot.
 """
 
 import logging
-
+import sqlite3
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
+from db import DB
 
+d = DB()
 #Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
-START, LOCALITY,CITY,PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EMAIL, CONFIRM, END = range(13)
+START, LOCALITY,CITY,PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EMAIL, TEXT, CONFIRM, END = range(14)
 
 
 """def start(update, context):
@@ -35,7 +35,6 @@ START, LOCALITY,CITY,PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EM
         'We help create a community of readers who are physically proximate to each other.'
         'WhAT is your locality',
         reply_markup=ReplyKeyboardRemove())
-
 	return LOCALITY"""
 
 def start(update, context):
@@ -121,7 +120,7 @@ def subjects(update, context):
 
 def number (update,context):
 	user=update.message.from_user
-	logger.info("Phone Number of %s: %s", user.first_name, update.message.text)
+	logger.info("Books of Subjects for %s: %s", user.first_name, update.message.text)
 	update.message.reply_text(
 		'Could you please share with us your phone number?',
 		reply_markup=ReplyKeyboardRemove())
@@ -131,11 +130,21 @@ def number (update,context):
 
 def email(update, context):
 	user=update.message.from_user
-	logger.info("Books of Subject%s: %s", user.first_name, update.message.text)
+	logger.info("Phone Number of %s: %s", user.first_name, update.message.text)
 	update.message.reply_text(
 		'We are glad you are trusting us with your information'
 		'If you could give us your email ID, it would help us send you the relevant information'
 		'What is your email?', 
+		reply_markup=ReplyKeyboardRemove())
+
+	return TEXT 
+
+def text (update, context):
+	user=update.message.from_user
+	p=d.get_items()
+	logger.info("Email of %s: %s", user.first_name, update.message.text)
+	update.message.reply_text(
+		'Please confirm.',
 		reply_markup=ReplyKeyboardRemove())
 
 	return CONFIRM
@@ -144,7 +153,7 @@ def confirm (update, context):
 	reply_keyboard = [['Yes' , 'No']]
 
 	user=update.message.from_user
-	logger.info("Email of %s: %s", user.first_name, update.message.text)
+	logger.info("Details of %s: %s", user.first_name, update.message.text)
 	update.message.reply_text(
 		'Thankyou for all your help. Please press yes to confirm your details.',
 		reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
@@ -157,7 +166,7 @@ def end(update,context):
 	update.message.reply_text('I hope we are of help to you. Happy reading!',
 		                       reply_markup=ReplyKeyboardRemove())
 
-	return ConversationHandler.END 
+	return ConversationHandler.END
 
 
 def cancel(update, context):
@@ -175,11 +184,12 @@ def error(update, context):
 
 
 def main():
+    d.setup()
     # will Create the Updater and pass it our bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
 
   
-    updater = Updater("1099113463:AAHBgI02WQbWvBqHQQVc-NBXI_MXLGIWBBA", use_context=True)
+    updater = Updater("1099106816:AAEEfUuB0WKPZ7vieQKk7gbiqGymoGPuFO0", use_context=True)
 
 
     # Get the dispatcher to register handlers
@@ -214,6 +224,8 @@ def main():
 
             EMAIL: [MessageHandler(Filters.text, email)],
 
+            TEXT: [MessageHandler(Filters.text, email)],
+
             CONFIRM: [MessageHandler(Filters.text, confirm)],
             
             END: [MessageHandler(Filters.text,end)]
@@ -235,6 +247,10 @@ def main():
     # SIGTERM or SIGABRT. This should be used most of the time
     # start_polling() is non-blocking and will stop the bot.
     updater.idle()
+    #d.add_item(CITY, PINCODE, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EMAIL, REQ, CONFIRM)
+    print(CITY, PINCODE, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EMAIL, REQ, CONFIRM)
+
+    d.get_items()
 
 
 if __name__ == '__main__':
