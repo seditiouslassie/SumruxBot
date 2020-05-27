@@ -24,7 +24,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-START, LOCALITY,CITY,PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, NUMBER, EMAIL, TEXT, CONFIRM, END = range(14)
+START, LOCALITY, CITY, PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, CONTACT, EMAIL, DETAILS, CONFIRM, END = range(14)
 
 
 """def start(update, context):
@@ -116,9 +116,9 @@ def subjects(update, context):
 		 'One last thing. Which subjects are you looking for?',
 		 reply_markup=ReplyKeyboardRemove())
 
-	return NUMBER
+	return CONTACT
 
-def number (update,context):
+def contact (update,context):
 	user=update.message.from_user
 	logger.info("Books of Subjects for %s: %s", user.first_name, update.message.text)
 	update.message.reply_text(
@@ -130,16 +130,16 @@ def number (update,context):
 
 def email(update, context):
 	user=update.message.from_user
-	logger.info("Phone Number of %s: %s", user.first_name, update.message.text)
+	logger.info("Contact Number of %s: %s", user.first_name, update.message.text)
 	update.message.reply_text(
 		'We are glad you are trusting us with your information'
 		'If you could give us your email ID, it would help us send you the relevant information'
 		'What is your email?', 
 		reply_markup=ReplyKeyboardRemove())
 
-	return TEXT 
+	return DETAILS 
 
-def text (update, context):
+def details (update, context):
 	user=update.message.from_user
 	p=d.get_items()
 	logger.info("Email of %s: %s", user.first_name, update.message.text)
@@ -189,7 +189,7 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
 
   
-    updater = Updater("1099106816:AAEEfUuB0WKPZ7vieQKk7gbiqGymoGPuFO0", use_context=True)
+    updater = Updater("1099113463:AAHBgI02WQbWvBqHQQVc-NBXI_MXLGIWBBA", use_context=True)
 
 
     # Get the dispatcher to register handlers
@@ -208,7 +208,8 @@ def main():
             #PHOTO: [MessageHandler(Filters.photo, photo),
              # CommandHandler('skip', skip_photo)],
             PINCODE: [MessageHandler(Filters.text, pincode)],
-              REQ: [MessageHandler(Filters.text, req)],
+
+            REQ: [MessageHandler(Filters.text, req)],
 
            
             STANDARD: [MessageHandler(Filters.text, standard)],
@@ -220,15 +221,15 @@ def main():
 
             SUBJECTS: [MessageHandler(Filters.text, subjects)],
 
-            NUMBER: [MessageHandler(Filters.text, number)],
+            CONTACT: [MessageHandler(Filters.text, contact)],
 
             EMAIL: [MessageHandler(Filters.text, email)],
 
-            TEXT: [MessageHandler(Filters.text, email)],
+            DETAILS: [MessageHandler(Filters.text, details)],
 
             CONFIRM: [MessageHandler(Filters.text, confirm)],
             
-            END: [MessageHandler(Filters.text,end)]
+            END: [MessageHandler(Filters.text, end)]
 
         },
 
