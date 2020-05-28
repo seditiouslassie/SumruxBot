@@ -12,10 +12,13 @@ bot.
 
 import sqlite3
 import logging
+import os
 
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler, DictPersistence, BasePersistence, Dispatcher)
+from dotenv import load_dotenv
+load_dotenv()
 
 from db import DB
 
@@ -30,16 +33,6 @@ START, LOCALITY, CITY, PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, CONTACT,
     14)
 
 
-# def start(update, context):
-# 	user=update.message.from_user
-# 	logger.info("locality of%s: %s", user.first_name, update.message.text)
-# 	update.message.reply_text(
-#         'Hi! Welcome to SumRuxBookExchange. We at Sumrux identify people in the same pincode and exchange books.'
-#         'We help create a community of readers who are physically proximate to each other.'
-#         'WhAT is your locality',
-#         reply_markup=ReplyKeyboardRemove())
-# 	return LOCALITY
-
 def start(update, context):
     """Send a message when the command /start is issued."""
     update.message.reply_text(
@@ -49,17 +42,17 @@ Thank you for choosing us to help you.
 This is a free service by Sumrux for academic books for covid-19 recovery.
 Let us know the details of the books you are looking for and the books you have.
 
-Please let us know your current locality?
+Please let us know your current City?
 		''')
     return CITY
 
 
 def city(update, context):
     user = update.message.from_user
-    # context.user_data['Locality'] = update.message.text
-    logger.info("locality of %s: %s", user.first_name, update.message.text)
+    context.user_data['City'] = update.message.text
+    logger.info("City of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'What is your city?',
+        'What is your locality?',
         reply_markup=ReplyKeyboardRemove())
 
     return PINCODE
@@ -67,8 +60,8 @@ def city(update, context):
 
 def pincode(update, context):
     user = update.message.from_user
-    context.user_data['City'] = update.message.text
-    logger.info("City of %s: %s", user.first_name, update.message.text)
+    context.user_data['Locality'] = update.message.text
+    logger.info("Locality of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
         '''
 Thankyou, you have made it easier for us to find you a match
@@ -169,21 +162,6 @@ What is your email?
     return CONFIRM
 
 
-# def details(update, context):
-#     user = update.message.from_user
-#     reply_keyboard = [['Yes', 'No']]
-#     context.user_data['Email'] = update.message.text
-#     logger.info("Email of %s: %s", user.first_name, update.message.text)
-#     update.message.reply_text(
-# '''
-# Please confirm.
-
-# ''',
-#         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
-
-#     return CONFIRM
-
-
 def confirm(update, context):
     reply_keyboard = [['Yes', 'No']]
     context.user_data['Email'] = update.message.text
@@ -193,6 +171,7 @@ def confirm(update, context):
         f'''
 Thankyou for all your help. Please press yes to confirm your details.
 City : {context.user_data["City"]}, 
+Locality : {context.user_data["Locality"]}, 
 Pincode : {context.user_data["Pincode"]}, 
 Requirement : {context.user_data["Req"]}, 
 Standard : {context.user_data["Standard"]}, 
@@ -214,9 +193,9 @@ def end(update, context):
                     user.first_name, update.message.text)
         update.message.reply_text(
             'I hope we are of help to you. Happy reading!', reply_markup=ReplyKeyboardRemove())
-        d = DB()
-        d.setup()
-        d.add_item(**context.user_data)
+        db = DB()
+        db.setup()
+        db.add_item(**context.user_data)
         return ConversationHandler.END
 
     else:
@@ -242,7 +221,7 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
 
     updater = Updater(
-        "1182005277:AAGfUP3Qx62CHFak6TmRvg_YhSpzzKle2ws", use_context=True, persistence=DictPersistence())
+        os.getenv("TELEGRAM_TOKEN",""), use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -253,16 +232,11 @@ def main():
 
         states={
 
-            # LOCALITY: [MessageHandler(Filters.text, locality)],
             CITY: [MessageHandler(Filters.text, city)],
 
-
-            # PHOTO: [MessageHandler(Filters.photo, photo),
-            # CommandHandler('skip', skip_photo)],
             PINCODE: [MessageHandler(Filters.text, pincode)],
 
             REQ: [MessageHandler(Filters.text, req)],
-
 
             STANDARD: [MessageHandler(Filters.text, standard)],
 
@@ -277,7 +251,6 @@ def main():
 
             EMAIL: [MessageHandler(Filters.text, email)],
 
-            # DETAILS: [MessageHandler(Filters.text, details)],
 
             CONFIRM: [MessageHandler(Filters.text, confirm)],
 
@@ -285,8 +258,7 @@ def main():
 
         },
 
-        fallbacks=[CommandHandler('cancel', cancel)], persistent=DictPersistence(), name="Data Collector"
-    )
+        fallbacks=[CommandHandler('cancel', cancel)], )
 
     dp.add_handler(conv_handler)
 
