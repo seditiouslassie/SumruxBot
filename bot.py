@@ -13,10 +13,12 @@ bot.
 import sqlite3
 import logging
 import os
+import telebot #Telegram BOT API
 
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler, DictPersistence, BasePersistence, Dispatcher)
+from telegram import User, TelegramObject
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -33,17 +35,20 @@ START, LOCALITY, CITY, PINCODE, REQ, STANDARD, BOARD, MEDIUM, SUBJECTS, CONTACT,
     14)
 
 
+
 def start(update, context):
     """Send a message when the command /start is issued."""
+    name = message.from_user.first_name
+    print (name)
     update.message.reply_text(
-        '''
-Hi! Welcome to SumRuxBookExchange.
-Thank you for choosing us to help you.
-This is a free service by Sumrux for academic books for covid-19 recovery.
-Let us know the details of the books you are looking for and the books you have.
+'Hi!' message 
+'Welcome to SumRuxBookExchange.'
+'Thank you for choosing us to help you.'
+'This is a free service by Sumrux for academic books for covid-19 recovery.'
+'Let us know the details of the books you are looking for and the books you have.'
 
-Please let us know your current City?
-		''')
+'Please let us know your current City?'
+		)
     return CITY
 
 
@@ -222,6 +227,11 @@ def main():
 
     updater = Updater(
         os.getenv("TELEGRAM_TOKEN",""), use_context=True)
+
+    bot = telebot.Telebot(os.getenv("TELEGRAM_TOKEN"))
+    @bot.message_handler(commands=['info'])
+
+
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
